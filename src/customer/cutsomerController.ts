@@ -1,28 +1,32 @@
 import { Response } from "express";
 import { Request } from "express-jwt";
-import customerModel from "./customerModel";
+import { CustomerService } from "./customerService";
+import { Logger } from "winston";
 
 export class CustomerContoller {
+  constructor(
+    private customerService: CustomerService,
+    private logger: Logger,
+  ) {}
   getCustomer = async (req: Request, res: Response) => {
-    // todo: add these fields to jwt in auth service
     const { sub: userId, firstName, lastName, email } = req.auth;
 
-    //todo:implement  service layer
-    const customer = await customerModel.findOne({ userId });
+    const customer = await this.customerService.getCustomerInfo(userId);
 
     if (!customer) {
-      const newCustomer = await customerModel.create({
-        userId: userId,
+      const newCustomer = await this.customerService.addCustomer({
+        userId,
         firstName,
         lastName,
         email,
         address: [],
-        
       });
-      // todo:add logging
+
+      this.logger.info(`New Customer Created`, { id: newCustomer._id });
       return res.json(newCustomer);
     }
 
+    this.logger.info(`Customer is fetched`, { id: customer._id });
     res.json(customer);
   };
 }
