@@ -15,4 +15,9 @@ customerRouter.get(
   asyncWrapper(customerContoller.getCustomer),
 );
 
+customerRouter.patch(
+  "/addresses/:id",
+  authenticate,
+  asyncWrapper(customerContoller.addAddress),
+);
 export default customerRouter;

@@ -34,7 +34,7 @@ const customerSchema = new mongoose.Schema<Customer>(
       type: "string",
       required: true,
     },
-    address: {
+    addresses: {
       type: [addressSchema],
       required: false,
     },
