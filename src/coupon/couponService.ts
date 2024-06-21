@@ -12,4 +12,8 @@ export class CouponService {
       tenantId,
     });
   }
+
+  async findCoupon({ code, tenantId }) {
+    return await couponModel.findOne({ code, tenantId });
+  }
 }

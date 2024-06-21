@@ -13,7 +13,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/customer", customerRouter);
-app.use("/coupon", couponRoute);
+app.use("/coupons", couponRoute);
 app.use(globalErrorHandler);
 
 export default app;

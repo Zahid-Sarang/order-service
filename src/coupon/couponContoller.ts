@@ -30,4 +30,34 @@ export class CouponController {
     }
     return next(createHttpError(403, "you are not allowed to create coupon"));
   };
+
+  // TODO: complete crud assignment
+
+  // verify coupon
+
+  verify = async (req: Request, res: Response, next: NextFunction) => {
+    const { code, tenantId } = req.body;
+    // todo:request validations
+
+    const coupon = await this.couponService.findCoupon({
+      code: code,
+      tenantId: tenantId,
+    });
+
+    if (!coupon) {
+      const error = createHttpError(400, "Coupon does not exist");
+      return next(error);
+    }
+
+    //validate expiry
+
+    const currentDate = new Date();
+    const couponDate = new Date(coupon.validUpto);
+
+    if (currentDate <= couponDate) {
+      return res.json({ valid: true, discount: coupon.discount });
+    }
+
+    res.json({ valid: false, discount: 0 });
+  };
 }
