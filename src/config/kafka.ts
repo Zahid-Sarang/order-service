@@ -1,5 +1,6 @@
 import { Consumer, EachMessagePayload, Kafka } from "kafkajs";
 import { MessageBroker } from "../types/broker";
+import { handleProductUpdate } from "../productCache/productUpdateHandler";
 
 export class KafkaBroker implements MessageBroker {
   private consumer: Consumer;
@@ -38,6 +39,15 @@ export class KafkaBroker implements MessageBroker {
         message,
       }: EachMessagePayload) => {
         // logic to handle incoming messages
+
+        switch (topic) {
+          case "product":
+            await handleProductUpdate(message.value.toString());
+            return;
+          default:
+            console.log("Doing nothing");
+        }
+
         console.log({
           value: message.value.toString(),
           topic: topic,
