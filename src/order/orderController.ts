@@ -7,7 +7,7 @@ import {
 } from "../types";
 import { OrderService } from "./orderService";
 import { Logger } from "winston";
-import { OrderStatus, PaymentStatus } from "./orderTypes";
+import { OrderStatus, PaymentMode, PaymentStatus } from "./orderTypes";
 import idempotencyMode from "../idempotency/idempotencyMode";
 import mongoose from "mongoose";
 import createHttpError from "http-errors";
@@ -209,21 +209,25 @@ export class OrderController {
     // payment Processing...
     // todo: error handling.... use try and catch
 
-    const session = await this.paymentGateway.createSession({
-      amount: finalTotal,
-      orderId: newOrder[0]._id.toString(),
-      tenantId: tenantId,
-      currency: "inr",
-      idempotencyKey: idempotencyKey as string,
-    });
+    if (paymentMode === PaymentMode.CARD) {
+      const session = await this.paymentGateway.createSession({
+        amount: finalTotal,
+        orderId: newOrder[0]._id.toString(),
+        tenantId: tenantId,
+        currency: "inr",
+        idempotencyKey: idempotencyKey as string,
+      });
 
-    this.logger.info(`payment session is created for ${session.id}`, {
-      orderId: newOrder[0]._id,
-    });
+      this.logger.info(`payment session is created for ${session.id}`, {
+        orderId: newOrder[0]._id,
+      });
 
-    // todo: Update order document -> paymentId -> sessionId
-    res.json({
-      paymentUrl: session.paymentUrl,
-    });
+      // todo: Update order document -> paymentId -> sessionId
+      res.json({
+        paymentUrl: session.paymentUrl,
+      });
+    }
+
+    return res.json({ paymentUrl: null });
   };
 }
