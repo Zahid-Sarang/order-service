@@ -1,3 +1,4 @@
+import createHttpError from "http-errors";
 import { ProductMessage } from "../types";
 import productCacheModel from "./productCacheModel";
 
@@ -16,6 +17,7 @@ export const handleProductUpdate = async (value: string) => {
       { upsert: true },
     );
   } catch (err) {
-    console.log(err);
+    const error = createHttpError(500, err);
+    throw error;
   }
 };
