@@ -2,6 +2,7 @@ import couponModel from "../coupon/couponModel";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
+import idempotencyMode from "../idempotency/idempotencyMode";
 
 export class OrderService {
   constructor() {}
@@ -34,21 +35,8 @@ export class OrderService {
 
   // create an order
 
-  async createOrder({
-    cart,
-    address,
-    comment,
-    customerId,
-    tenantId,
-    paymentMode,
-    total,
-    discount,
-    deliveryCharges,
-    orderStatus,
-    paymentStatus,
-    taxes,
-  }) {
-    return await orderModel.create({
+  async createOrder(
+    {
       cart,
       address,
       comment,
@@ -61,6 +49,34 @@ export class OrderService {
       orderStatus,
       paymentStatus,
       taxes,
-    });
+    },
+    session,
+  ) {
+    return await orderModel.create(
+      [
+        {
+          cart,
+          address,
+          comment,
+          customerId,
+          tenantId,
+          paymentMode,
+          total,
+          discount,
+          deliveryCharges,
+          orderStatus,
+          paymentStatus,
+          taxes,
+        },
+      ],
+      { session: session },
+    );
+  }
+
+  async createIdempotency(idempotencyKey: string, response, session) {
+    return await idempotencyMode.create(
+      [{ key: idempotencyKey, response: response }],
+      { session },
+    );
   }
 }
