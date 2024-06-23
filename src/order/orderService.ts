@@ -1,6 +1,7 @@
 import couponModel from "../coupon/couponModel";
 import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
+import orderModel from "./orderModel";
 
 export class OrderService {
   constructor() {}
@@ -28,6 +29,38 @@ export class OrderService {
     return await couponModel.findOne({
       code: couponCode,
       tenantId: tenantId,
+    });
+  }
+
+  // create an order
+
+  async createOrder({
+    cart,
+    address,
+    comment,
+    customerId,
+    tenantId,
+    paymentMode,
+    total,
+    discount,
+    deliveryCharges,
+    orderStatus,
+    paymentStatus,
+    taxes,
+  }) {
+    return await orderModel.create({
+      cart,
+      address,
+      comment,
+      customerId,
+      tenantId,
+      paymentMode,
+      total,
+      discount,
+      deliveryCharges,
+      orderStatus,
+      paymentStatus,
+      taxes,
     });
   }
 }

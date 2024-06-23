@@ -7,6 +7,7 @@ import {
 } from "../types";
 import { OrderService } from "./orderService";
 import { Logger } from "winston";
+import { OrderStatus, PaymentStatus } from "./orderTypes";
 
 export class OrderController {
   constructor(
@@ -118,13 +119,20 @@ export class OrderController {
 
   create = async (req: Request, res: Response) => {
     // todo:validate request data
-    console.log(req.body);
 
-    const totalPrice = await this.calculateTotal(req.body.cart);
+    const {
+      cart,
+      couponCode,
+      tenantId,
+      paymentMode,
+      customerId,
+      comment,
+      address,
+    } = req.body;
+
+    const totalPrice = await this.calculateTotal(cart);
 
     let discountPercentage = 0;
-    const couponCode = req.body.couponCode;
-    const tenantId = req.body.tenantId;
 
     if (couponCode) {
       discountPercentage = await this.getDiscounPercentage(
@@ -146,12 +154,29 @@ export class OrderController {
     const DELIVARY_CHARGES = 50;
 
     const finalTotal = priceAfterDiscount + taxes + DELIVARY_CHARGES;
+
+    // todo: Problems.....
+    // create an order
+    const newOrder = await this.orderService.createOrder({
+      cart,
+      address,
+      comment,
+      customerId,
+      tenantId,
+      paymentMode,
+      total: finalTotal,
+      discount: discountAmount,
+      deliveryCharges: DELIVARY_CHARGES,
+      orderStatus: OrderStatus.RECEIVED,
+      paymentStatus: PaymentStatus.PENDING,
+      taxes,
+    });
+
+    this.logger.info(`Order created for cutomer ${customerId}`, {
+      orderId: newOrder.id,
+    });
     res.json({
-      totalPrice: totalPrice,
-      taxes: taxes,
-      deliveryCharge: DELIVARY_CHARGES,
-      discountAmount: discountAmount,
-      finalTotal: finalTotal,
+      newOrder: newOrder,
     });
   };
 }
