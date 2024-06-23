@@ -5,22 +5,21 @@ import {
   Topping,
   ToppingPriceCache,
 } from "../types";
-import productCacheModel from "../productCache/productCacheModel";
-import toppingCacheModel from "../toppingCache/toppingCacheModel";
-import couponModel from "../coupon/couponModel";
+import { OrderService } from "./orderService";
+import { Logger } from "winston";
 
 export class OrderController {
-  constructor() {}
+  constructor(
+    private orderService: OrderService,
+    private logger: Logger,
+  ) {}
 
   private calculateTotal = async (cart: CartItem[]) => {
     const productIds = cart.map((item) => item._id);
 
-    // todo: proper error handling
-    const productPricings = await productCacheModel.find({
-      productId: {
-        $in: productIds,
-      },
-    });
+    // todo: proper error handling for productIds
+    const productPricings =
+      await this.orderService.getProductsPricings(productIds);
 
     // todo: what will happen if product does not exist in the cache
     // 1. call catelog service
@@ -35,11 +34,8 @@ export class OrderController {
       ];
     }, []);
 
-    const toppingPricings = await toppingCacheModel.find({
-      toppingId: {
-        $in: cartToppingIds,
-      },
-    });
+    const toppingPricings =
+      await this.orderService.getToppingsPricing(cartToppingIds);
 
     // todo: what will happen if toppings does not exist in the cache
     // 1. call catelog service
@@ -104,10 +100,7 @@ export class OrderController {
     couponCode: string,
     tenantId: string,
   ) => {
-    const code = await couponModel.findOne({
-      code: couponCode,
-      tenantId: tenantId,
-    });
+    const code = await this.orderService.getCouponCode(couponCode, tenantId);
 
     if (!code) {
       return 0;
