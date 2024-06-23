@@ -148,10 +148,17 @@ export class OrderController {
     const TAXES_PERCENT = 18;
 
     const taxes = Math.round((priceAfterDiscount * TAXES_PERCENT) / 100);
+
+    // todo: may store in db for each tenant
+    const DELIVARY_CHARGES = 50;
+
+    const finalTotal = priceAfterDiscount + taxes + DELIVARY_CHARGES;
     res.json({
       totalPrice: totalPrice,
-      discountAmount: discountAmount,
       taxes: taxes,
+      deliveryCharge: DELIVARY_CHARGES,
+      discountAmount: discountAmount,
+      finalTotal: finalTotal,
     });
   };
 }
