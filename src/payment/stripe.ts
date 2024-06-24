@@ -1,6 +1,11 @@
 import Stripe from "stripe";
 import config from "config";
-import { PaymentGateway, PaymentOptions } from "./paymentTypes";
+import {
+  CustomeMetaData,
+  PaymentGateway,
+  PaymentOptions,
+  VerifiedSession,
+} from "./paymentTypes";
 
 export class StripeGateWay implements PaymentGateway {
   private stripe: Stripe;
@@ -61,7 +66,14 @@ export class StripeGateWay implements PaymentGateway {
       paymentStatus: session.payment_status,
     };
   }
-  async getSession() {
-    return null;
+  async getSession(id: string) {
+    const session = await this.stripe.checkout.sessions.retrieve(id);
+    const verifiedSession: VerifiedSession = {
+      id: session.id,
+      paymentStatus: session.payment_status,
+      metadata: session.metadata as unknown as CustomeMetaData,
+    };
+
+    return verifiedSession;
   }
 }

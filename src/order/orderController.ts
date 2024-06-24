@@ -223,7 +223,7 @@ export class OrderController {
       });
 
       // todo: Update order document -> paymentId -> sessionId
-      res.json({
+      return res.json({
         paymentUrl: session.paymentUrl,
       });
     }

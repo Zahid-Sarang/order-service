@@ -3,6 +3,7 @@ import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
 import idempotencyMode from "../idempotency/idempotencyMode";
+import { PaymentStatus } from "./orderTypes";
 
 export class OrderService {
   constructor() {}
@@ -77,6 +78,20 @@ export class OrderService {
     return await idempotencyMode.create(
       [{ key: idempotencyKey, response: response }],
       { session },
+    );
+  }
+
+  async updateOrder(orderId: string, isPaymentSuccess: boolean) {
+    return await orderModel.updateOne(
+      {
+        _id: orderId,
+      },
+      {
+        paymentStatus: isPaymentSuccess
+          ? PaymentStatus.PAID
+          : PaymentStatus.FAILED,
+      },
+      { new: true },
     );
   }
 }
