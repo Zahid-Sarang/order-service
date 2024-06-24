@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import { Request as AuthRequest } from "express-jwt";
 import config from "config";
 import createHttpError from "http-errors";
 import mongoose from "mongoose";
@@ -14,6 +15,7 @@ import { OrderStatus, PaymentMode, PaymentStatus } from "./orderTypes";
 import idempotencyMode from "../idempotency/idempotencyMode";
 import { PaymentGateway } from "../payment/paymentTypes";
 import { MessageBroker } from "../types/broker";
+import { CustomerService } from "../customer/customerService";
 
 export class OrderController {
   constructor(
@@ -21,6 +23,7 @@ export class OrderController {
     private logger: Logger,
     private paymentGateway: PaymentGateway,
     private broker: MessageBroker,
+    private customerService: CustomerService,
   ) {}
 
   private calculateTotal = async (cart: CartItem[]) => {
@@ -242,5 +245,25 @@ export class OrderController {
     );
 
     return res.json({ paymentUrl: null });
+  };
+
+  getMine = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const userId = req.auth.sub;
+
+    if (!userId) {
+      return next(createHttpError(400, "No userId found"));
+    }
+
+    try {
+      const customer = await this.customerService.getCustomer(userId);
+      if (!customer) {
+        return next(createHttpError(400, "No customer found"));
+      }
+
+      const orders = await this.orderService.getCustomerOrder(customer._id);
+      return res.json(orders);
+    } catch (err) {
+      next(createHttpError(500, err));
+    }
   };
 }

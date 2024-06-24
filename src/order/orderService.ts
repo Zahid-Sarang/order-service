@@ -4,7 +4,7 @@ import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
 import idempotencyMode from "../idempotency/idempotencyMode";
 import { PaymentStatus } from "./orderTypes";
-
+import mongoose from "mongoose";
 export class OrderService {
   constructor() {}
 
@@ -93,5 +93,10 @@ export class OrderService {
       },
       { new: true },
     );
+  }
+
+  async getCustomerOrder(customerId: mongoose.Types.ObjectId) {
+    // todo:implement pagination
+    return await orderModel.find({ customerId: customerId }, { cart: 0 });
   }
 }

@@ -32,4 +32,8 @@ export class CustomerService {
       { new: true },
     );
   }
+
+  async getCustomer(userId: string) {
+    return await customerModel.findOne({ userId });
+  }
 }
