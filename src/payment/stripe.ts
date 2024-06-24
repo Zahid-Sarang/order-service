@@ -20,6 +20,7 @@ export class StripeGateWay implements PaymentGateway {
         // customer_email: options.email
         metadata: {
           orderId: options.orderId,
+          restaurantId: options.tenantId,
         },
 
         billing_address_collection: "required",
