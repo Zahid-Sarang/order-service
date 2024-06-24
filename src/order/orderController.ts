@@ -1,4 +1,8 @@
 import { NextFunction, Request, Response } from "express";
+import config from "config";
+import createHttpError from "http-errors";
+import mongoose from "mongoose";
+import { Logger } from "winston";
 import {
   CartItem,
   ProductPricingCache,
@@ -6,18 +10,17 @@ import {
   ToppingPriceCache,
 } from "../types";
 import { OrderService } from "./orderService";
-import { Logger } from "winston";
 import { OrderStatus, PaymentMode, PaymentStatus } from "./orderTypes";
 import idempotencyMode from "../idempotency/idempotencyMode";
-import mongoose from "mongoose";
-import createHttpError from "http-errors";
 import { PaymentGateway } from "../payment/paymentTypes";
+import { MessageBroker } from "../types/broker";
 
 export class OrderController {
   constructor(
     private orderService: OrderService,
     private logger: Logger,
     private paymentGateway: PaymentGateway,
+    private broker: MessageBroker,
   ) {}
 
   private calculateTotal = async (cart: CartItem[]) => {
@@ -222,11 +225,21 @@ export class OrderController {
         orderId: newOrder[0]._id,
       });
 
+      await this.broker.sendMessage(
+        config.get("topic.orderTopic"),
+        JSON.stringify(newOrder),
+      );
+
       // todo: Update order document -> paymentId -> sessionId
       return res.json({
         paymentUrl: session.paymentUrl,
       });
     }
+
+    await this.broker.sendMessage(
+      config.get("topic.orderTopic"),
+      JSON.stringify(newOrder),
+    );
 
     return res.json({ paymentUrl: null });
   };

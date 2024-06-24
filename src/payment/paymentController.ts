@@ -1,14 +1,16 @@
 import { Response, Request } from "express";
-import { PaymentGateway } from "./paymentTypes";
-
-import { OrderService } from "../order/orderService";
+import config from "config";
 import { Logger } from "winston";
+import { PaymentGateway } from "./paymentTypes";
+import { OrderService } from "../order/orderService";
+import { MessageBroker } from "../types/broker";
 
 export class PaymentController {
   constructor(
     private paymentGateway: PaymentGateway,
     private OrderService: OrderService,
     private logger: Logger,
+    private broker: MessageBroker,
   ) {}
   handleWebHook = async (req: Request, res: Response) => {
     const webhookBody = req.body;
@@ -20,8 +22,7 @@ export class PaymentController {
 
       const isPaymentSuccess = verifiedSession.paymentStatus === "paid";
 
-      // todo:move to service layer
-      await this.OrderService.updateOrder(
+      const updatedOrder = await this.OrderService.updateOrder(
         verifiedSession.metadata.orderId,
         isPaymentSuccess,
       );
@@ -31,7 +32,11 @@ export class PaymentController {
         { orderId: verifiedSession.metadata.orderId },
       );
 
-      // todo: send updated to kafka Broker
+      // todo: Think about message broker message fail
+      await this.broker.sendMessage(
+        config.get("topic.orderTopic"),
+        JSON.stringify(updatedOrder),
+      );
     }
     res.json({ success: true });
   };

@@ -82,7 +82,7 @@ export class OrderService {
   }
 
   async updateOrder(orderId: string, isPaymentSuccess: boolean) {
-    return await orderModel.updateOne(
+    return await orderModel.findOneAndUpdate(
       {
         _id: orderId,
       },
