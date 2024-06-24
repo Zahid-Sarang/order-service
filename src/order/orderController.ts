@@ -273,14 +273,23 @@ export class OrderController {
 
     const { sub: userId, role, tenant: tenantId } = req.auth;
 
-    const order = await this.orderService.getOrderInfo(orderId);
+    const fields = req.query.fields
+      ? req.query.fields.toString().split(",")
+      : [];
+
+    // Construct the projection object
+    const projection = fields.reduce((acc, field) => {
+      acc[field] = 1;
+      return acc;
+    }, {});
+
+    const order = await this.orderService.getOrderInfo(orderId, projection);
 
     if (!order) {
       next(createHttpError(400, "order does not exist"));
     }
 
     // What roles can access this endpoint: Admin,manager(for their own restaurant),customer(own order)
-
     if (role === "admin") {
       return res.json(order);
     }
@@ -295,7 +304,6 @@ export class OrderController {
       if (!customer) {
         return next(createHttpError(400, "customer does not exist"));
       }
-      console.log("customer", customer, "userId:", userId);
 
       if (order.customerId.toString() === customer._id.toString()) {
         return res.json(order);

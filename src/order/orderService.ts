@@ -100,7 +100,7 @@ export class OrderService {
     return await orderModel.find({ customerId: customerId }, { cart: 0 });
   }
 
-  async getOrderInfo(orderId: string) {
-    return await orderModel.findOne({ _id: orderId });
+  async getOrderInfo(orderId: string, projection) {
+    return await orderModel.findOne({ _id: orderId }, projection);
   }
 }
