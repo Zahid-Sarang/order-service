@@ -24,5 +24,10 @@ const orderController = new OrderController(
 
 orderRouter.post("/", authenticate, asyncWrapper(orderController.create));
 orderRouter.get("/mine", authenticate, asyncWrapper(orderController.getMine));
+orderRouter.get(
+  "/:orderId",
+  authenticate,
+  asyncWrapper(orderController.getSingle),
+);
 
 export default orderRouter;

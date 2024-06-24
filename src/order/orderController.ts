@@ -255,15 +255,53 @@ export class OrderController {
     }
 
     try {
-      const customer = await this.customerService.getCustomer(userId);
+      const customer = await this.customerService.getCustomerInfo(userId);
       if (!customer) {
         return next(createHttpError(400, "No customer found"));
       }
 
       const orders = await this.orderService.getCustomerOrder(customer._id);
+      this.logger.info("orders are fetched for ", { customerId: customer._id });
       return res.json(orders);
     } catch (err) {
       next(createHttpError(500, err));
     }
+  };
+
+  getSingle = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const orderId = req.params.orderId;
+
+    const { sub: userId, role, tenant: tenantId } = req.auth;
+
+    const order = await this.orderService.getOrderInfo(orderId);
+
+    if (!order) {
+      next(createHttpError(400, "order does not exist"));
+    }
+
+    // What roles can access this endpoint: Admin,manager(for their own restaurant),customer(own order)
+
+    if (role === "admin") {
+      return res.json(order);
+    }
+
+    const myRestaurantOrder = order.tenantId === tenantId;
+    if (role === "manager" && myRestaurantOrder) {
+      return res.json(order);
+    }
+
+    if (role === "customer") {
+      const customer = await this.customerService.getCustomerInfo(userId);
+      if (!customer) {
+        return next(createHttpError(400, "customer does not exist"));
+      }
+      console.log("customer", customer, "userId:", userId);
+
+      if (order.customerId.toString() === customer._id.toString()) {
+        return res.json(order);
+      }
+    }
+
+    return next(createHttpError(402, "operation not permitted"));
   };
 }

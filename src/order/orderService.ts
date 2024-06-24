@@ -99,4 +99,8 @@ export class OrderService {
     // todo:implement pagination
     return await orderModel.find({ customerId: customerId }, { cart: 0 });
   }
+
+  async getOrderInfo(orderId: string) {
+    return await orderModel.findOne({ _id: orderId });
+  }
 }
