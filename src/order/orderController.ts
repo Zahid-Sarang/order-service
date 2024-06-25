@@ -278,10 +278,13 @@ export class OrderController {
       : [];
 
     // Construct the projection object
-    const projection = fields.reduce((acc, field) => {
-      acc[field] = 1;
-      return acc;
-    }, {});
+    const projection = fields.reduce(
+      (acc, field) => {
+        acc[field] = 1;
+        return acc;
+      },
+      { customerId: 1 },
+    );
 
     const order = await this.orderService.getOrderInfo(orderId, projection);
 
@@ -305,7 +308,7 @@ export class OrderController {
         return next(createHttpError(400, "customer does not exist"));
       }
 
-      if (order.customerId.toString() === customer._id.toString()) {
+      if (order.customerId._id.toString() === customer._id.toString()) {
         return res.json(order);
       }
     }

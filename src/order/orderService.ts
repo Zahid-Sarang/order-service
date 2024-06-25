@@ -101,6 +101,8 @@ export class OrderService {
   }
 
   async getOrderInfo(orderId: string, projection) {
-    return await orderModel.findOne({ _id: orderId }, projection);
+    return (await orderModel.findOne({ _id: orderId }, projection)).populate(
+      "customerId",
+    );
   }
 }
