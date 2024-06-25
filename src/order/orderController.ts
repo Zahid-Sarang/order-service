@@ -369,7 +369,11 @@ export class OrderController {
       if (role === ROLES.MANAGER && !isMyRestaurantOrder) {
         return next(createHttpError(403, "Not allowed."));
       }
-      // todo: very important validated req.body.status
+
+      const OrderStatusValue = Object.values(OrderStatus);
+      if (!OrderStatusValue.includes(req.body.status)) {
+        return next(createHttpError(400, "Please send valid order status."));
+      }
 
       const updatedOrder = await this.orderService.updateOrderById(
         orderId,
