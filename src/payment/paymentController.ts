@@ -4,6 +4,7 @@ import { Logger } from "winston";
 import { PaymentGateway } from "./paymentTypes";
 import { OrderService } from "../order/orderService";
 import { MessageBroker } from "../types/broker";
+import { OrderEvents } from "../order/orderTypes";
 
 export class PaymentController {
   constructor(
@@ -33,9 +34,16 @@ export class PaymentController {
       );
 
       // todo: Think about message broker message fail
+
+      const brokerMessage = {
+        event_type: OrderEvents.PAYMENT_STATUS_UPDATE,
+        data: updatedOrder,
+      };
+
       await this.broker.sendMessage(
         config.get("topic.orderTopic"),
-        JSON.stringify(updatedOrder),
+        JSON.stringify(brokerMessage),
+        updatedOrder._id.toString(),
       );
     }
     res.json({ success: true });

@@ -12,7 +12,12 @@ import {
   ToppingPriceCache,
 } from "../types";
 import { OrderService } from "./orderService";
-import { OrderStatus, PaymentMode, PaymentStatus } from "./orderTypes";
+import {
+  OrderEvents,
+  OrderStatus,
+  PaymentMode,
+  PaymentStatus,
+} from "./orderTypes";
 import idempotencyMode from "../idempotency/idempotencyMode";
 import { PaymentGateway } from "../payment/paymentTypes";
 import { MessageBroker } from "../types/broker";
@@ -216,6 +221,15 @@ export class OrderController {
     // payment Processing...
     // todo: error handling.... use try and catch
 
+    /**
+     * Stucture kafka broker message
+     */
+
+    const brokerMessage = {
+      event_type: OrderEvents.ORDER_CREATE,
+      data: newOrder[0],
+    };
+
     if (paymentMode === PaymentMode.CARD) {
       const session = await this.paymentGateway.createSession({
         amount: finalTotal,
@@ -231,7 +245,8 @@ export class OrderController {
 
       await this.broker.sendMessage(
         config.get("topic.orderTopic"),
-        JSON.stringify(newOrder),
+        JSON.stringify(brokerMessage),
+        newOrder[0]._id.toString(),
       );
 
       // todo: Update order document -> paymentId -> sessionId
@@ -242,7 +257,8 @@ export class OrderController {
 
     await this.broker.sendMessage(
       config.get("topic.orderTopic"),
-      JSON.stringify(newOrder),
+      JSON.stringify(brokerMessage),
+      newOrder[0]._id.toString(),
     );
 
     return res.json({ paymentUrl: null });
@@ -380,7 +396,16 @@ export class OrderController {
         req.body.status,
       );
 
-      // todo: send to kafka
+      const brokerMessage = {
+        event_type: OrderEvents.ORDER_STATUS_UPDATE,
+        data: updatedOrder,
+      };
+
+      await this.broker.sendMessage(
+        config.get("topic.orderTopic"),
+        JSON.stringify(brokerMessage),
+        updatedOrder._id.toString(),
+      );
 
       return res.json({
         _id: updatedOrder._id,
