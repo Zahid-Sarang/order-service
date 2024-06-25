@@ -3,7 +3,7 @@ import productCacheModel from "../productCache/productCacheModel";
 import toppingCacheModel from "../toppingCache/toppingCacheModel";
 import orderModel from "./orderModel";
 import idempotencyMode from "../idempotency/idempotencyMode";
-import { PaymentStatus } from "./orderTypes";
+import { OrderStatus, PaymentStatus } from "./orderTypes";
 import mongoose from "mongoose";
 export class OrderService {
   constructor() {}
@@ -110,5 +110,17 @@ export class OrderService {
     return await orderModel
       .find(filter, {}, { sort: { createdAt: -1 } })
       .populate("customerId");
+  }
+
+  async findOrderById(orderId: string) {
+    return await orderModel.findOne({ _id: orderId });
+  }
+
+  async updateOrderById(orderId: string, status: OrderStatus) {
+    return await orderModel.findOneAndUpdate(
+      { _id: orderId },
+      { orderStatus: status },
+      { new: true },
+    );
   }
 }

@@ -348,4 +348,42 @@ export class OrderController {
 
     return next(createHttpError(403, "Not allowed"));
   };
+
+  changeStatus = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { role, tenant: tenantId } = req.auth;
+    const orderId = req.params.orderId;
+
+    if (role === ROLES.MANAGER || role === ROLES.ADMIN) {
+      const order = await this.orderService.findOrderById(orderId);
+
+      if (!order) {
+        return next(createHttpError(400, "Order not found"));
+      }
+
+      const isMyRestaurantOrder = order.tenantId === tenantId;
+
+      if (role === ROLES.MANAGER && !isMyRestaurantOrder) {
+        return next(createHttpError(403, "Not allowed."));
+      }
+      // todo: very important validated req.body.status
+
+      const updatedOrder = await this.orderService.updateOrderById(
+        orderId,
+        req.body.status,
+      );
+
+      // todo: send to kafka
+
+      return res.json({
+        _id: updatedOrder._id,
+        status: updatedOrder.orderStatus,
+      });
+    }
+
+    return next(createHttpError(403, "Not allowed to update order!"));
+  };
 }

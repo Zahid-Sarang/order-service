@@ -31,4 +31,9 @@ orderRouter.get(
 );
 
 orderRouter.get("/", authenticate, asyncWrapper(orderController.getAll));
+orderRouter.patch(
+  "/change-status/:orderId",
+  authenticate,
+  asyncWrapper(orderController.changeStatus),
+);
 export default orderRouter;
