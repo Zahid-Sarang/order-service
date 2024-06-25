@@ -30,4 +30,5 @@ orderRouter.get(
   asyncWrapper(orderController.getSingle),
 );
 
+orderRouter.get("/", authenticate, asyncWrapper(orderController.getAll));
 export default orderRouter;

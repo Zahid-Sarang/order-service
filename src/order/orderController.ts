@@ -7,6 +7,7 @@ import { Logger } from "winston";
 import {
   CartItem,
   ProductPricingCache,
+  ROLES,
   Topping,
   ToppingPriceCache,
 } from "../types";
@@ -314,5 +315,37 @@ export class OrderController {
     }
 
     return next(createHttpError(402, "operation not permitted"));
+  };
+
+  getAll = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    const { role, tenant: userTenantId } = req.auth;
+
+    const tenantId = req.query.tenantId;
+
+    if (role === ROLES.CUSTOMER) {
+      return next(createHttpError(403, "operation not permitted!"));
+    }
+
+    if (role === ROLES.ADMIN) {
+      const filter = {};
+      if (tenantId) {
+        filter["tenantId"] = tenantId;
+      }
+
+      // todo: VERY IMPORTANT add pagination.
+      const orders = await this.orderService.getTenantOrder(filter);
+
+      return res.json(orders);
+    }
+
+    if (role === ROLES.MANAGER) {
+      const orders = await this.orderService.getTenantOrder({
+        tenantId: userTenantId,
+      });
+
+      return res.json(orders);
+    }
+
+    return next(createHttpError(403, "Not allowed"));
   };
 }

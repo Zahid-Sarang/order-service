@@ -79,3 +79,9 @@ export interface CartItem
   qty: number;
   hash?: string;
 }
+
+export enum ROLES {
+  ADMIN = "admin",
+  CUSTOMER = "customer",
+  MANAGER = "manager",
+}

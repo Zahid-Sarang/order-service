@@ -105,4 +105,10 @@ export class OrderService {
       .findOne({ _id: orderId }, projection)
       .populate("customerId");
   }
+
+  async getTenantOrder(filter) {
+    return await orderModel
+      .find(filter, {}, { sort: { createdAt: -1 } })
+      .populate("customerId");
+  }
 }
