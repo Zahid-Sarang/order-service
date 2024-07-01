@@ -10,6 +10,15 @@ const couponService = new CouponService();
 const couponController = new CouponController(couponService, logger);
 
 couponRoute.post("/", authenticate, asyncWrapper(couponController.create));
-couponRoute.post("/verify", authenticate, asyncWrapper(couponController.verify));
+couponRoute.post(
+  "/verify",
+  authenticate,
+  asyncWrapper(couponController.verify),
+);
+couponRoute.delete(
+  "/coupon/:couponId",
+  authenticate,
+  asyncWrapper(couponController.destory),
+);
 
 export default couponRoute;

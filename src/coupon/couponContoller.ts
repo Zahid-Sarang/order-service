@@ -3,6 +3,7 @@ import { Request } from "express-jwt";
 import createHttpError from "http-errors";
 import { CouponService } from "./couponService";
 import { Logger } from "winston";
+import { ROLES } from "../types";
 
 export class CouponController {
   constructor(
@@ -16,7 +17,7 @@ export class CouponController {
     // todo: add request validation
 
     const { role, tenant } = req.auth;
-    if (tenantId === tenant || role === "admin") {
+    if (tenantId === tenant || role === ROLES.ADMIN) {
       const coupon = await this.couponService.createCoupon({
         title,
         code,
@@ -56,7 +57,26 @@ export class CouponController {
     if (currentDate <= couponDate) {
       return res.json({ valid: true, discount: coupon.discount });
     }
+    this.logger.info(`Coupon is verify for`, { id: coupon._id });
 
     res.json({ valid: false, discount: 0 });
+  };
+
+  destory = async (req: Request, res: Response, next: NextFunction) => {
+    const { couponId } = req.params;
+    const { role, tenant } = req.auth;
+
+    if (!couponId) {
+      return next(createHttpError(400, "Invalid Url Params!"));
+    }
+    const coupon = await this.couponService.findById(couponId);
+
+    if (tenant === String(coupon.tenantId) || role === ROLES.ADMIN) {
+      await this.couponService.deleteCouponById(couponId);
+      this.logger.info(`Coupon is deleted`, { id: coupon._id });
+      return res.json("coupon deleted");
+    }
+
+    return next(createHttpError(403, "you are not allowed to delete coupon"));
   };
 }
