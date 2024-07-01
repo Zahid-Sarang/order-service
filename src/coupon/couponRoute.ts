@@ -10,6 +10,7 @@ const couponService = new CouponService();
 const couponController = new CouponController(couponService, logger);
 
 couponRoute.post("/", authenticate, asyncWrapper(couponController.create));
+couponRoute.get("/", authenticate, asyncWrapper(couponController.getAll));
 couponRoute.post(
   "/verify",
   authenticate,

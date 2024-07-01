@@ -79,4 +79,39 @@ export class CouponController {
 
     return next(createHttpError(403, "you are not allowed to delete coupon"));
   };
+
+  getAll = async (req: Request, res: Response, next: NextFunction) => {
+    const { role, tenant: userTenantId } = req.auth;
+
+    const tenantId = req.query.tenantId;
+
+    if (role === ROLES.CUSTOMER) {
+      return next(createHttpError(403, "operation not permitted!"));
+    }
+
+    if (role === ROLES.ADMIN) {
+      const filter = {};
+      if (tenantId) {
+        filter["tenantId"] = tenantId;
+      }
+
+      // todo: VERY IMPORTANT add pagination.
+      const coupons = await this.couponService.getTenantsCoupons(filter);
+
+      this.logger.info(`Coupon is fetched by admin`, { tenantId: tenantId });
+
+      return res.json(coupons);
+    }
+
+    if (role === ROLES.MANAGER) {
+      const coupons = await this.couponService.getTenantsCoupons({
+        tenantId: userTenantId,
+      });
+
+      this.logger.info(`Coupon is fetched by manager`, { tenantId: tenantId });
+      return res.json(coupons);
+    }
+
+    return next(createHttpError(403, "Not allowed access this information"));
+  };
 }

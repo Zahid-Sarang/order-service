@@ -24,4 +24,8 @@ export class CouponService {
   async deleteCouponById(couponId: string) {
     return await couponModel.findByIdAndDelete({ _id: couponId });
   }
+
+  async getTenantsCoupons(filter) {
+    return await couponModel.find(filter, {}, { sort: { createdAt: -1 } });
+  }
 }
