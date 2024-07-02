@@ -80,36 +80,61 @@ export class CouponController {
     return next(createHttpError(403, "you are not allowed to delete coupon"));
   };
 
+  // Get list of Coupon
   getAll = async (req: Request, res: Response, next: NextFunction) => {
     const { role, tenant: userTenantId } = req.auth;
-
-    const tenantId = req.query.tenantId;
+    const { q, tenantId } = req.query;
 
     if (role === ROLES.CUSTOMER) {
       return next(createHttpError(403, "operation not permitted!"));
     }
 
     if (role === ROLES.ADMIN) {
+      console.log(tenantId);
       const filter = {};
       if (tenantId) {
         filter["tenantId"] = tenantId;
       }
 
       // todo: VERY IMPORTANT add pagination.
-      const coupons = await this.couponService.getTenantsCoupons(filter);
+      const coupons = await this.couponService.getTenantsCoupons(
+        q as string,
+        filter,
+        {
+          page: req.query.page ? parseInt(req.query.page as string) : 1,
+          limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+        },
+      );
 
       this.logger.info(`Coupon is fetched by admin`, { tenantId: tenantId });
 
-      return res.json(coupons);
+      return res.json({
+        data: coupons.data,
+        total: coupons.total,
+        perPage: coupons.perPage,
+        currentPage: coupons.currentPage,
+      });
     }
 
     if (role === ROLES.MANAGER) {
-      const coupons = await this.couponService.getTenantsCoupons({
-        tenantId: userTenantId,
-      });
+      const coupons = await this.couponService.getTenantsCoupons(
+        q as string,
+        {
+          tenantId: userTenantId,
+        },
+        {
+          page: req.query.page ? parseInt(req.query.page as string) : 1,
+          limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+        },
+      );
 
       this.logger.info(`Coupon is fetched by manager`, { tenantId: tenantId });
-      return res.json(coupons);
+      return res.json({
+        data: coupons.data,
+        total: coupons.total,
+        perPage: coupons.perPage,
+        currentPage: coupons.currentPage,
+      });
     }
 
     return next(createHttpError(403, "Not allowed access this information"));

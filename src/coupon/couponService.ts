@@ -1,4 +1,6 @@
+import { paginationLabels } from "../config/pagination";
 import couponModel from "./couponModel";
+import { Filter, PaginateQuery } from "./couponTypes";
 
 export class CouponService {
   constructor() {}
@@ -25,7 +27,28 @@ export class CouponService {
     return await couponModel.findByIdAndDelete({ _id: couponId });
   }
 
-  async getTenantsCoupons(filter) {
-    return await couponModel.find(filter, {}, { sort: { createdAt: -1 } });
+  async getTenantsCoupons(
+    q: string,
+    filter: Filter,
+    paginatedQuery: PaginateQuery,
+  ) {
+    console.log(filter);
+    const searchQueryRegex = new RegExp(q, "i");
+
+    const matchQuery = {
+      ...filter,
+      title: searchQueryRegex,
+    };
+
+    const aggregate = couponModel.aggregate([
+      {
+        $match: matchQuery,
+      },
+      { $sort: { createdAt: -1 } },
+    ]);
+    return couponModel.aggregatePaginate(aggregate, {
+      ...paginatedQuery,
+      customLabels: paginationLabels,
+    });
   }
 }

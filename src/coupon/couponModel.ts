@@ -1,6 +1,6 @@
-import mongoose from "mongoose";
+import mongoose, { AggregatePaginateModel } from "mongoose";
 import { Coupon } from "./couponTypes";
-
+import aggregatePaginate from "mongoose-aggregate-paginate-v2";
 const couponSchema = new mongoose.Schema<Coupon>(
   {
     title: {
@@ -20,7 +20,7 @@ const couponSchema = new mongoose.Schema<Coupon>(
       required: true,
     },
     tenantId: {
-      type: Number,
+      type: String,
       required: true,
     },
   },
@@ -29,4 +29,9 @@ const couponSchema = new mongoose.Schema<Coupon>(
 
 couponSchema.index({ tenantId: 1, code: 1 }, { unique: true });
 
-export default mongoose.model("Coupon", couponSchema);
+couponSchema.plugin(aggregatePaginate);
+
+export default mongoose.model<Coupon, AggregatePaginateModel<Coupon>>(
+  "Coupon",
+  couponSchema,
+);
