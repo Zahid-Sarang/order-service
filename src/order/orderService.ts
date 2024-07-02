@@ -97,9 +97,20 @@ export class OrderService {
     );
   }
 
-  async getCustomerOrder(customerId: mongoose.Types.ObjectId) {
-    // todo:implement pagination
-    return await orderModel.find({ customerId: customerId }, { cart: 0 });
+  async getCustomerOrder(
+    customerId: mongoose.Types.ObjectId,
+    paginatedQuery: PaginateQuery,
+  ) {
+    const aggregate = orderModel.aggregate([
+      {
+        $match: { customerId: customerId },
+      },
+      { $project: { cart: 0 } },
+    ]);
+    return orderModel.aggregatePaginate(aggregate, {
+      ...paginatedQuery,
+      customLabels: paginationLabels,
+    });
   }
 
   async getOrderInfo(orderId: string, projection) {

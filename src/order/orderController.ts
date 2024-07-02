@@ -277,9 +277,19 @@ export class OrderController {
         return next(createHttpError(400, "No customer found"));
       }
 
-      const orders = await this.orderService.getCustomerOrder(customer._id);
+      const orders = await this.orderService.getCustomerOrder(customer._id, {
+        page: req.query.currentPage
+          ? parseInt(req.query.currentPage as string)
+          : 1,
+        limit: req.query.perPage ? parseInt(req.query.perPage as string) : 10,
+      });
       this.logger.info("orders are fetched for ", { customerId: customer._id });
-      return res.json(orders);
+      return res.json({
+        data: orders.data,
+        total: orders.total,
+        perPage: orders.perPage,
+        currentPage: orders.currentPage,
+      });
     } catch (err) {
       next(createHttpError(500, err));
     }
