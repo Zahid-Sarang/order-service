@@ -5,6 +5,8 @@ import orderModel from "./orderModel";
 import idempotencyMode from "../idempotency/idempotencyMode";
 import { OrderStatus, PaymentStatus } from "./orderTypes";
 import mongoose from "mongoose";
+import { Filter, PaginateQuery } from "../types";
+import { paginationLabels } from "../config/pagination";
 export class OrderService {
   constructor() {}
 
@@ -106,10 +108,27 @@ export class OrderService {
       .populate("customerId");
   }
 
-  async getTenantOrder(filter) {
-    return await orderModel
-      .find(filter, {}, { sort: { createdAt: -1 } })
-      .populate("customerId");
+  async getTenantOrder(filter: Filter, paginatedQuery: PaginateQuery) {
+    const aggregate = orderModel.aggregate([
+      {
+        $match: filter,
+      },
+      { $sort: { createdAt: -1 } },
+      {
+        $lookup: {
+          from: "customers",
+          localField: "customerId",
+          foreignField: "_id",
+          as: "customerId",
+        },
+      },
+      { $unwind: "$customerId" },
+    ]);
+
+    return orderModel.aggregatePaginate(aggregate, {
+      ...paginatedQuery,
+      customLabels: paginationLabels,
+    });
   }
 
   async findOrderById(orderId: string) {

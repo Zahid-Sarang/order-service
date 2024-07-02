@@ -349,15 +349,28 @@ export class OrderController {
       }
 
       // todo: VERY IMPORTANT add pagination.
-      const orders = await this.orderService.getTenantOrder(filter);
+      const orders = await this.orderService.getTenantOrder(filter, {
+        page: req.query.currentPage
+          ? parseInt(req.query.currentPage as string)
+          : 1,
+        limit: req.query.perPage ? parseInt(req.query.perPage as string) : 10,
+      });
 
       return res.json(orders);
     }
 
     if (role === ROLES.MANAGER) {
-      const orders = await this.orderService.getTenantOrder({
-        tenantId: userTenantId,
-      });
+      const orders = await this.orderService.getTenantOrder(
+        {
+          tenantId: userTenantId,
+        },
+        {
+          page: req.query.currentPage
+            ? parseInt(req.query.currentPage as string)
+            : 1,
+          limit: req.query.perPage ? parseInt(req.query.perPage as string) : 10,
+        },
+      );
 
       return res.json(orders);
     }
