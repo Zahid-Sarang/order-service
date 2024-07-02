@@ -90,19 +90,19 @@ export class CouponController {
     }
 
     if (role === ROLES.ADMIN) {
-      console.log(tenantId);
       const filter = {};
       if (tenantId) {
         filter["tenantId"] = tenantId;
       }
 
-      // todo: VERY IMPORTANT add pagination.
       const coupons = await this.couponService.getTenantsCoupons(
         q as string,
         filter,
         {
-          page: req.query.page ? parseInt(req.query.page as string) : 1,
-          limit: req.query.limit ? parseInt(req.query.limit as string) : 10,
+          page: req.query.currentPage
+            ? parseInt(req.query.currentPage as string)
+            : 1,
+          limit: req.query.perPage ? parseInt(req.query.perPage as string) : 10,
         },
       );
 

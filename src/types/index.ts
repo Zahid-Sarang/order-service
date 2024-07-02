@@ -85,3 +85,12 @@ export enum ROLES {
   CUSTOMER = "customer",
   MANAGER = "manager",
 }
+
+export interface Filter {
+  tenantId?: string;
+}
+
+export interface PaginateQuery {
+  page: number;
+  limit: number;
+}

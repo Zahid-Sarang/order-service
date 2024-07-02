@@ -1,6 +1,6 @@
 import { paginationLabels } from "../config/pagination";
 import couponModel from "./couponModel";
-import { Filter, PaginateQuery } from "./couponTypes";
+import { Filter, PaginateQuery } from "../types/index";
 
 export class CouponService {
   constructor() {}
@@ -32,7 +32,6 @@ export class CouponService {
     filter: Filter,
     paginatedQuery: PaginateQuery,
   ) {
-    console.log(filter);
     const searchQueryRegex = new RegExp(q, "i");
 
     const matchQuery = {

@@ -9,11 +9,4 @@ export interface Coupon {
   updatedAt: Date;
 }
 
-export interface Filter {
-  tenantId?: string;
-}
 
-export interface PaginateQuery {
-  page: number;
-  limit: number;
-}
