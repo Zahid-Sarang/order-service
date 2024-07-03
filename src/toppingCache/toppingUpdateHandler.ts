@@ -8,12 +8,12 @@ export const handleToppingUpdate = async (value: string) => {
 
     return await toppingCacheModel.updateOne(
       {
-        toppingId: topping._id,
+        toppingId: topping.data._id,
       },
       {
         $set: {
-          price: topping.price,
-          tenantId: topping.tenantId,
+          price: topping.data.price,
+          tenantId: topping.data.tenantId,
         },
       },
       { upsert: true },

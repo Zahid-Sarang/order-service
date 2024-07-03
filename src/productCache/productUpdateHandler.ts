@@ -7,11 +7,11 @@ export const handleProductUpdate = async (value: string) => {
     const product: ProductMessage = JSON.parse(value);
     return productCacheModel.updateOne(
       {
-        productId: product._id,
+        productId: product.data._id,
       },
       {
         $set: {
-          priceConfiguration: product.priceConfiguration,
+          priceConfiguration: product.data.priceConfiguration,
         },
       },
       { upsert: true },
