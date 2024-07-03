@@ -5,11 +5,13 @@ import { PaymentGateway } from "./paymentTypes";
 import { OrderService } from "../order/orderService";
 import { MessageBroker } from "../types/broker";
 import { OrderEvents } from "../order/orderTypes";
+import { CustomerService } from "../customer/customerService";
 
 export class PaymentController {
   constructor(
     private paymentGateway: PaymentGateway,
     private OrderService: OrderService,
+    private customerService: CustomerService,
     private logger: Logger,
     private broker: MessageBroker,
   ) {}
@@ -19,7 +21,6 @@ export class PaymentController {
       const verifiedSession = await this.paymentGateway.getSession(
         webhookBody.data.object.id,
       );
-      console.log("verified session", verifiedSession);
 
       const isPaymentSuccess = verifiedSession.paymentStatus === "paid";
 
@@ -35,9 +36,13 @@ export class PaymentController {
 
       // todo: Think about message broker message fail
 
+      const customer = await this.customerService.getCustomerById(
+        updatedOrder.customerId,
+      );
+
       const brokerMessage = {
         event_type: OrderEvents.PAYMENT_STATUS_UPDATE,
-        data: updatedOrder,
+        data: { ...updatedOrder.toObject(), customerId: customer },
       };
 
       await this.broker.sendMessage(

@@ -218,8 +218,10 @@ export class OrderController {
       orderId: newOrder[0]._id,
     });
 
-    // payment Processing...
-    // todo: error handling.... use try and catch
+    // fetch customer information
+    const customer = await this.customerService.getCustomerById(
+      newOrder[0].customerId,
+    );
 
     /**
      * Stucture kafka broker message
@@ -227,8 +229,11 @@ export class OrderController {
 
     const brokerMessage = {
       event_type: OrderEvents.ORDER_CREATE,
-      data: newOrder[0],
+      data: { ...newOrder[0], customerId: customer },
     };
+
+    // payment Processing...
+    // todo: error handling.... use try and catch
 
     if (paymentMode === PaymentMode.CARD) {
       const session = await this.paymentGateway.createSession({
@@ -264,6 +269,7 @@ export class OrderController {
     return res.json({ paymentUrl: null });
   };
 
+  // get single customer Orders
   getMine = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const userId = req.auth.sub;
 
@@ -295,6 +301,7 @@ export class OrderController {
     }
   };
 
+  // get single order
   getSingle = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const orderId = req.params.orderId;
 
@@ -343,6 +350,7 @@ export class OrderController {
     return next(createHttpError(402, "operation not permitted"));
   };
 
+  // get All orders
   getAll = async (req: AuthRequest, res: Response, next: NextFunction) => {
     const { role, tenant: userTenantId } = req.auth;
 
@@ -358,7 +366,6 @@ export class OrderController {
         filter["tenantId"] = tenantId;
       }
 
-      // todo: VERY IMPORTANT add pagination.
       const orders = await this.orderService.getTenantOrder(filter, {
         page: req.query.currentPage
           ? parseInt(req.query.currentPage as string)
@@ -388,6 +395,7 @@ export class OrderController {
     return next(createHttpError(403, "Not allowed"));
   };
 
+  // change order status
   changeStatus = async (
     req: AuthRequest,
     res: Response,
@@ -419,9 +427,15 @@ export class OrderController {
         req.body.status,
       );
 
+      // fetch customer information
+
+      const customer = await this.customerService.getCustomerById(
+        updatedOrder.customerId,
+      );
+
       const brokerMessage = {
         event_type: OrderEvents.ORDER_STATUS_UPDATE,
-        data: updatedOrder,
+        data: { ...updatedOrder.toObject(), customerId: customer },
       };
 
       await this.broker.sendMessage(

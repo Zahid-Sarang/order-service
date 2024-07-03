@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import customerModel from "./customerModel";
 
 export class CustomerService {
@@ -31,5 +32,9 @@ export class CustomerService {
       },
       { new: true },
     );
+  }
+
+  async getCustomerById(customerId: mongoose.Types.ObjectId) {
+    return await customerModel.findOne({ _id: customerId });
   }
 }
