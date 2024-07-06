@@ -35,6 +35,6 @@ RUN --mount=type=bind,source=package.json,target=package.json \
 
 COPY --from=builder --chown=node:node /home/node/app/dist ./
 
-EXPOSE 5501
+EXPOSE 5503
 
 CMD ["node", "server.js"]
